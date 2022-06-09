@@ -774,7 +774,7 @@ Sets the size of the upcoming array the following N fields will be apart of.
 
 Sets the raw value of the next field in order in the current root structure.
 Raw as in, an integer in the JSON file represented as "128" would only be 1 byte long (0x80)
-instead of 3 as an array of ASCII characters. same for addresses and so on.
+instead of 3 as an array of ASCII characters, same for addresses and so on.
 
 
 _Output data_
@@ -782,21 +782,25 @@ _Output data_
 None
 
 
-### EIP712 PROVIDE FIELD INFORMATION
+### EIP712 FILTERING
 
 #### Description
 
 This command provides a trusted new display name to use for the upcoming field.
 This command should come before the corresponding EIP712 SEND STRUCT IMPLEMENTATION.
 
-If the command describes an empty name (length of 0), the upcoming field will be taken into account but
-won't be shown on the device.
-
 The signature is computed on :
 
-json key length || json key || display name length || display name
+contract address *(only for message fields)* || json key length || json key || display name length || display name
 
 signed by the following secp256k1 public key 0482bbf2f34f367b2e5bc21847b6566f21f0976b22d3388a9a5e446ac62d25cf725b62a2555b2dd464a4da0ab2f4d506820543af1d242470b1b1a969a27578f353
+
+Filtering is set to basic by default and has to be changed with this APDU as *set mode*.
+Field informations will be ignored if the mode is set to basic.
+
+In full mode, fields will be by default hidden unless they receive a field information.
+
+The mode can be overriden by the in-app setting to full-clear sign EIP-712 messages.
 
 
 #### Coding
@@ -806,10 +810,31 @@ _Command_
 [width="80%"]
 |=========================================================================
 | *CLA* | *INS*  | *P1*               | *P2*       | *LC*     | *Le*
-|   E0  |   1E   | 00                 | 00         | variable | variable
+|   E0  |   1E   | 00 : set mode
+
+                   FF : field info    | 00         | variable | variable
 |=========================================================================
 
 _Input data_
+
+##### If P1 == set mode
+
+[width="80%"]
+|=============================================
+| *Description*             | *Length (byte)*
+| Mode                      | 1
+|=============================================
+
+Modes :
+
+[width="40%"]
+|=================================
+| *Byte value*  | *Description*
+| 0x00          | Basic (internal filtering)
+| 0xFF          | Full (externally provided)
+|=================================
+
+##### If P1 == field info
 
 [width="80%"]
 |==========================================
